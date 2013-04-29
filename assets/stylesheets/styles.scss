@@ -1,0 +1,130 @@
+html {
+  height: 100%;
+  overflow-y: scroll;
+  padding: 0;
+}
+
+body {
+  position: relative;
+  min-height: 100%;
+  font: 14px 'HelveticaNeue-Light', 'Helvetica Neue Light', 'Helvetica Neue', Helvetica, Arial, 'Lucida Grande', sans-serif;
+  padding: 0;
+}
+
+.header {
+  text-align: center;
+  padding: 30px;
+  margin: 0;
+}
+
+.footer {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  text-align: center;
+  margin-bottom: 60px;
+  font-size: 16px;
+}
+
+.content {
+  padding-bottom: 70px;
+}
+
+.chart-container {
+  margin: 0 auto 60px auto;
+}
+
+.input-container {
+  text-align: center;
+  margin: 200px 0 80px 0;
+  padding-left: 50px;
+}
+
+.input {
+  display: inline;
+}
+
+svg {
+  font-family: 'Lato', Arial, serif;
+  font-size: 10px;
+  font-weight: 700;
+  text-shadow: 0 1px 1px rgba(255,255,255,0.8);
+}
+
+text.subject-title {
+  font-size: 20px;
+}
+
+text.instructions {
+  font-size: 16px;
+}
+
+g.context g.brush rect.background {
+  fill: rgba(0,0,0,.1);
+}
+
+g.context g.axis path {
+  stroke-opacity: 0;
+}
+
+g.context g.axis line {
+  stroke-opacity: .1;
+}
+
+g.business-modeling path.chart {
+  fill: rgba(219,42,24,0.8);
+}
+
+g.requirements path.chart {
+  fill: rgba(231,121,93,0.8);
+}
+
+g.analysis-and-design path.chart {
+  fill: rgba(239,157,69,0.8);
+}
+
+g.implementation path.chart {
+  fill: rgba(253,250,114,0.8);
+}
+
+g.test path.chart {
+  fill: rgba(0,202,134,0.8);
+}
+
+g.deployment path.chart {
+  fill: rgba(0,140,134,0.8);
+}
+
+g.configuration-and-change-management path.chart {
+  fill: rgba(0,145,166,0.8);
+}
+
+g.project-management path.chart {
+  fill: rgba(42,74,145,0.8);
+}
+
+g.environment path.chart {
+  fill: rgba(130,97,171,0.8);
+}
+
+g.in-class path.chart {
+  fill: rgba(176,130,233,0.8);
+}
+
+.axis path, .axis line {
+  fill: none;
+  stroke: #797979;
+  shape-rendering: crispEdges;
+}
+
+.brush .extent {
+  stroke: #f09f8c;
+  fill-opacity: .125;
+  shape-rendering: crispEdges;
+}
+
+g.context rect.background{
+  fill: rgb(200,200,255);
+  visibility: visible !important;
+}

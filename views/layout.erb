@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <meta name='keywords' content='rup hump generator' />
+  <meta name='author' content='Guilherme Simoes'>
+  <link rel='author' href='//plus.google.com/105718471083306751613/posts'/>
+  <link rel='icon' type='image/x-icon' href='/images/favicon.png' />
+  <%= css :application, media: 'all' %>
+  <title>RUP Hump</title>
+</head>
+<body>
+  <h1 class='header'>RUP Hump Generator</h1>
+
+  <div class='content'>
+    <%= yield %>
+  </div>
+
+  <div class='footer'>
+    <div class='copyright'>© 2013 LightBill</div>
+  </div>
+
+  <script type='text/javascript' src='//d3js.org/d3.v2.js'></script>
+  <%= js :application %>
+</body>
+</html>
