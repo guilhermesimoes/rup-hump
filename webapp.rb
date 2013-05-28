@@ -11,6 +11,7 @@ class WebApp < Sinatra::Base
     serve '/images', from: 'assets/images'
 
     js :application, [
+      '/js/shared.js',
       '/js/main.js'
     ]
 

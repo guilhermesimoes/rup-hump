@@ -7,8 +7,19 @@ var svg,
     contextWidth = width * 0.5,
     inputElement = document.getElementById("js-input");
 
-inputElement.style.display = "";
-inputElement.addEventListener("change", handleFiles);
+if (appConfig.fileApi) {
+    inputElement.style.display = "";
+    inputElement.addEventListener("change", handleFiles);
+}
+else {
+    var body = document.getElementsByTagName("body")[0],
+        warning = document.createElement("div");
+
+    warning.className = "warning";
+    warning.textContent = "This browser does not support the File API specification. Switch to a modern browser (like Chrome or Firefox) to feel the magic.";
+
+    body.insertBefore(warning, body.firstChild);
+}
 
 function handleFiles() {
     var file = this.files[0],
