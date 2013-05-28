@@ -7,6 +7,7 @@ var svg,
     contextWidth = width * 0.5,
     inputElement = document.getElementById("js-input");
 
+inputElement.style.display = "";
 inputElement.addEventListener("change", handleFiles);
 
 function handleFiles() {
@@ -14,13 +15,11 @@ function handleFiles() {
         objectURL = window.URL.createObjectURL(file);
 
     document.getElementById("js-chart-container").style.width = (window.innerWidth - pageMargins) + "px";
-    svg = d3.select("#js-chart-container").html('').append("svg")
+    svg = d3.select("#js-chart-container").html("").append("svg")
         .attr("width", width + margin.left + margin.right)
         .attr("height", (height + contextHeight + margin.top + margin.bottom));
 
     d3.csv(objectURL, createChart);
-
-    //createChart(d3.csv.parse(objectURL));
 }
 
 function createChart(data) {
@@ -115,7 +114,7 @@ function createChart(data) {
     context.append("text")
         .attr("class", "instructions")
         .attr("transform", "translate(0," + (contextHeight + 20) + ")")
-        .text('Click and drag above to zoom / pan the data');
+        .text("Click and drag above to zoom / pan the data");
 
     function onBrush() {
         /* this will return a date range to pass into the chart object */
