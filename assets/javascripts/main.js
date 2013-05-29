@@ -30,7 +30,8 @@ function handleFiles() {
 function createChart(data) {
     var subjects = [],
         charts = [],
-        maxDataPoint = 0;
+        maxDataPoint = 0,
+        tempDate;
 
     /* Loop through first row and get each subject
       and push it into an array to use later */
@@ -57,7 +58,14 @@ function createChart(data) {
 
                 if (prop === "Date") {
                     // D3 needs a date object, let's convert it just one time
-                    d.Date = new Date(d.Date);
+                    tempDate = new Date(d.Date);
+
+                    if (isValidDate(tempDate)) {
+                        d.Date = tempDate;
+                    }
+                    else {
+                        showWarning("The date " + d.Date + " could not be parsed by this web browser. Try to follow the standard date format, ISO 8601.");
+                    }
                 }
                 else {
                     d[prop] = parseFloat(d[prop]);
@@ -225,4 +233,11 @@ Chart.prototype.showOnly = function(b) {
     this.chartContainer.select("path").data([this.chartData]).attr("d", this.area);
     this.chartContainer.select(".x.axis.top").call(this.xAxisTop);
     this.chartContainer.select(".x.axis.bottom").call(this.xAxisBottom);
+}
+
+function isValidDate(date) {
+    if (Object.prototype.toString.call(date) !== "[object Date]") {
+        return false;
+    }
+    return !isNaN(date.getTime());
 }
