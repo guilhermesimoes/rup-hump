@@ -12,13 +12,7 @@ if (appConfig.fileApi) {
     inputElement.addEventListener("change", handleFiles);
 }
 else {
-    var body = document.getElementsByTagName("body")[0],
-        warning = document.createElement("div");
-
-    warning.className = "warning";
-    warning.textContent = "This browser does not support the File API specification. Switch to a modern browser (like Chrome or Firefox) to feel the magic.";
-
-    body.insertBefore(warning, body.firstChild);
+    showWarning("This browser does not support the HTML5 File API specification. Switch to a modern browser (like Chrome or Firefox) to interact with this page.");
 }
 
 function handleFiles() {
