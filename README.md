@@ -36,7 +36,7 @@ You will end up with a chart like this:
 
 First, install all the required gems with:
 
-    bundle install
+    bundle install --without production
 
 Then start a web server on port 3000 with:
 
