@@ -1,13 +1,21 @@
 var svg,
-    margin = {top: 10, right: 30, bottom: 170, left: 60},
-    pageMargins = 100,
-    width = window.innerWidth - pageMargins - margin.left - margin.right,
-    height = 1200 - margin.top - margin.bottom,
+    margin = {top: 10, right: 20, bottom: 230, left: 60},
+    chartHeight = 110,
+    contextPaddingTop = 20,
     contextHeight = 60,
-    contextWidth = width * 0.5,
-    inputElement = document.getElementById("js-input");
+    contextLabelPaddingTop = 20,
+    screenTakenPercentage = 0.9,
+    drawAreaWidth,
+    drawAreaHeight,
+    chartWidth,
+    contextWidth,
+    contextOffsetLeft,
+    contextOffsetTop,
+    subjectsCount,
+    chartsData = [];
 
 if (appConfig.fileApi) {
+    var inputElement = document.getElementById("js-input");
     inputElement.style.display = "";
     inputElement.addEventListener("change", handleFiles);
 }
@@ -19,19 +27,34 @@ function handleFiles() {
     var file = this.files[0],
         objectURL = window.URL.createObjectURL(file);
 
-    document.getElementById("js-chart-container").style.width = (window.innerWidth - pageMargins) + "px";
-    svg = d3.select("#js-chart-container").html("").append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", (height + contextHeight + margin.top + margin.bottom));
+    d3.csv(objectURL, function(data) {
+        parseData(data);
+        updateWidthVariables();
+        drawChart();
+    });
 
-    d3.csv(objectURL, createChart);
+    window.onresize = debounce(function() {
+        updateWidthVariables();
+        drawChart();
+    }, 200);
 }
 
-function createChart(data) {
-    var subjects = [],
-        charts = [],
-        maxDataPoint = 0,
-        tempDate;
+
+function updateWidthVariables() {
+    drawAreaWidth = document.body.offsetWidth * screenTakenPercentage;
+    chartWidth = drawAreaWidth - margin.left - margin.right;
+    contextWidth = chartWidth * 0.5;
+    contextOffsetLeft = margin.left + chartWidth * 0.25;
+
+    for (var i = 0; i < subjectsCount; i++) {
+        chartsData[i].width = chartWidth;
+    }
+}
+
+function parseData(data) {
+    var tempDate,
+        subjects = [],
+        maxDataPoint = 0;
 
     /* Loop through first row and get each subject
       and push it into an array to use later */
@@ -43,11 +66,12 @@ function createChart(data) {
         }
     }
 
-    var subjectsCount = subjects.length;
-    var chartHeight = height * (1 / subjectsCount);
+    subjectsCount = subjects.length;
+    drawAreaHeight = margin.top + (subjectsCount * chartHeight) + margin.bottom;
+    contextOffsetTop = margin.top + ((subjectsCount + 1) * chartHeight) + contextPaddingTop;
 
-    /* Let's make sure these are all numbers, 
-      we don't want javaScript thinking it's text 
+    /* Let's make sure these are all numbers,
+      we don't want javaScript thinking it's text
 
       Let's also figure out the maximum data point
       We'll use this later to set the Y-Axis scale
@@ -78,75 +102,37 @@ function createChart(data) {
         }
     });
 
+    chartsData = [];
     for (var i = 0; i < subjectsCount; i++) {
-        charts.push(new Chart({
+        chartsData.push({
             data: data.slice(),
             id: i,
             name: subjects[i],
-            width: width,
-            height: height * (1 / subjectsCount),
             maxDataPoint: maxDataPoint,
-            svg: svg,
+            height: chartHeight,
             margin: margin,
-            showBottomAxis: (i === subjects.length - 1)
-        }));
-    }
-
-    /* Let's create the context brush that will 
-        let us zoom and pan the chart */
-    var contextXScale = d3.time.scale()
-        .range([0, contextWidth])
-        .domain(charts[0].xScale.domain());
-
-    var contextAxis = d3.svg.axis()
-        .scale(contextXScale)
-        .tickSize(contextHeight)
-        .tickPadding(-10)
-        .orient("bottom");
-
-    var brush = d3.svg.brush()
-        .x(contextXScale)
-        .on("brush", onBrush);
-
-    var context = svg.append("g")
-        .attr("class", "context")
-        .attr("transform", "translate(" + (margin.left + width * 0.25) + "," + (height + margin.top + chartHeight + 30) + ")");
-
-    context.append("g")
-        .attr("class", "x axis top")
-        .attr("transform", "translate(0,0)")
-        .call(contextAxis);
-
-    context.append("g")
-        .attr("class", "x brush")
-        .call(brush)
-        .selectAll("rect")
-            .attr("y", 0)
-            .attr("height", contextHeight);
-
-    context.append("text")
-        .attr("class", "instructions")
-        .attr("transform", "translate(0," + (contextHeight + 20) + ")")
-        .text("Click and drag above to zoom / pan the data");
-
-    function onBrush() {
-        /* this will return a date range to pass into the chart object */
-        var b = brush.empty() ? contextXScale.domain() : brush.extent();
-        for (var i = 0; i < subjectsCount; i++) {
-            charts[i].showOnly(b);
-        }
+            showTopAxis: (i === 0),
+            showBottomAxis: (i === subjectsCount - 1)
+        });
     }
 }
 
+function isValidDate(date) {
+    if (Object.prototype.toString.call(date) !== "[object Date]") {
+        return false;
+    }
+    return !isNaN(date.getTime());
+}
+
 function Chart(options) {
-    this.chartData = options.data;
+    this.data = options.data;
     this.width = options.width;
     this.height = options.height;
     this.maxDataPoint = options.maxDataPoint;
-    this.svg = options.svg;
     this.id = options.id;
     this.name = options.name;
     this.margin = options.margin;
+    this.showTopAxis = options.showTopAxis;
     this.showBottomAxis = options.showBottomAxis;
 
     var localName = this.name;
@@ -154,7 +140,7 @@ function Chart(options) {
     /* XScale is time based */
     this.xScale = d3.time.scale()
         .range([0, this.width])
-        .domain(d3.extent(this.chartData.map(function(d) { return d.Date; })));
+        .domain(d3.extent(this.data.map(function(d) { return d.Date; })));
 
     /* YScale is linear based on the maxData Point we found earlier */
     this.yScale = d3.scale.linear()
@@ -178,11 +164,11 @@ function Chart(options) {
       This isn't required - it simply creates a mask. If this wasn't here,
       when we zoom/panned, we'd see the chart go off to the left under the y-axis 
     */
-    this.svg.append("defs").append("clipPath")
-                            .attr("id", "clip-" + this.id)
-                            .append("rect")
-                                .attr("width", this.width)
-                                .attr("height", this.height);
+    svg.append("defs").append("clipPath")
+                        .attr("id", "clip-" + this.id)
+                        .append("rect")
+                            .attr("width", this.width)
+                            .attr("height", this.height);
     /*
       Assign it a class so we can assign a fill color
       And position it on the page
@@ -193,7 +179,7 @@ function Chart(options) {
 
     /* We've created everything, let's actually add it to the page */
     this.chartContainer.append("path")
-                            .data([this.chartData])
+                            .data([this.data])
                             .attr("class", "chart")
                             .attr("clip-path", "url(#clip-" + this.id + ")")
                             .attr("d", this.area);
@@ -201,7 +187,7 @@ function Chart(options) {
     this.xAxisTop = d3.svg.axis().scale(this.xScale).orient("bottom");
     this.xAxisBottom = d3.svg.axis().scale(this.xScale).orient("top");
     /* We only want a top axis if it's the first subject */
-    if (this.id === 0) {
+    if (this.showTopAxis) {
         this.chartContainer.append("g")
             .attr("class", "x axis top")
             .attr("transform", "translate(0,0)")
@@ -228,16 +214,66 @@ function Chart(options) {
                         .text(this.name);
 }
 
-Chart.prototype.showOnly = function(b) {
-    this.xScale.domain(b);
-    this.chartContainer.select("path").data([this.chartData]).attr("d", this.area);
-    this.chartContainer.select(".x.axis.top").call(this.xAxisTop);
-    this.chartContainer.select(".x.axis.bottom").call(this.xAxisBottom);
+function drawChart() {
+    document.getElementById("js-chart-container").style.width = drawAreaWidth + "px";
+    svg = d3.select("#js-chart-container").html("").append("svg")
+        .attr("width", drawAreaWidth)
+        .attr("height", drawAreaHeight);
+
+    var charts = [];
+    for (var i = 0; i < subjectsCount; i++) {
+        charts.push(new Chart(chartsData[i]));
+    }
+
+    /* Let's create the context brush that will 
+        let us zoom and pan the chart */
+    var contextXScale = d3.time.scale()
+        .range([0, contextWidth])
+        .domain(charts[0].xScale.domain());
+
+    var contextAxis = d3.svg.axis()
+        .scale(contextXScale)
+        .tickSize(contextHeight)
+        .tickPadding(-10)
+        .orient("bottom");
+
+    var brush = d3.svg.brush()
+        .x(contextXScale)
+        .on("brush", onBrush);
+
+    var context = svg.append("g")
+        .attr("class", "context")
+        .attr("transform", "translate(" + contextOffsetLeft + "," + contextOffsetTop + ")");
+
+    context.append("g")
+        .attr("class", "x axis top")
+        .attr("transform", "translate(0,0)")
+        .call(contextAxis);
+
+    context.append("g")
+        .attr("class", "x brush")
+        .call(brush)
+        .selectAll("rect")
+            .attr("y", 0)
+            .attr("height", contextHeight);
+
+    context.append("text")
+        .attr("class", "instructions")
+        .attr("transform", "translate(0," + (contextHeight + contextLabelPaddingTop) + ")")
+        .text("Click and drag above to zoom / pan the data");
+
+    function onBrush() {
+        /* this will return a date range to pass into the chart object */
+        var b = brush.empty() ? contextXScale.domain() : brush.extent();
+        for (var i = 0; i < subjectsCount; i++) {
+            charts[i].showOnly(b);
+        }
+    }
 }
 
-function isValidDate(date) {
-    if (Object.prototype.toString.call(date) !== "[object Date]") {
-        return false;
-    }
-    return !isNaN(date.getTime());
-}
+Chart.prototype.showOnly = function(b) {
+    this.xScale.domain(b);
+    this.chartContainer.select("path").data([this.data]).attr("d", this.area);
+    this.chartContainer.select(".x.axis.top").call(this.xAxisTop);
+    this.chartContainer.select(".x.axis.bottom").call(this.xAxisBottom);
+};
